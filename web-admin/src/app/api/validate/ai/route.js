@@ -74,7 +74,7 @@ export async function POST(request) {
     const passThreshold = db.sysConfig.aiPassThreshold || 85.0;
     
     // Log function helper
-    const saveLog = (status, reason) => {
+    const saveLog = async (status, reason) => {
       db.aiLogs.unshift({
          timestamp: new Date().toISOString(),
          status,
@@ -100,7 +100,7 @@ export async function POST(request) {
     };
 
     if (aiScore < passThreshold) {
-      saveLog("REJECTED", `Mismatched scene. Score ${aiScore}% < ${passThreshold}%`);
+      await saveLog("REJECTED", `Mismatched scene. Score ${aiScore}% < ${passThreshold}%`);
       return NextResponse.json({ 
         success: false, 
         error: `❌ AI REJECTED: Low visual similarity (${aiScore}%). The 2 photos captured were too different.`,
@@ -108,7 +108,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    saveLog("VERIFIED", "Visuals match the expected scene context.");
+    await saveLog("VERIFIED", "Visuals match the expected scene context.");
     
     return NextResponse.json({
       success: true,
