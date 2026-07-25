@@ -3,7 +3,7 @@ import { readDb, writeDb } from '../../../lib/db';
 
 export async function GET() {
   try {
-    const db = readDb();
+    const db = await readDb();
     return NextResponse.json(db.schedules || []);
   } catch (err) {
     return NextResponse.json({ error: "Failed to fetch schedules" }, { status: 500 });
@@ -17,7 +17,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const db = readDb();
+    const db = await readDb();
     
     const newSchedule = {
       id: "s" + Date.now(),
@@ -28,7 +28,7 @@ export async function POST(req) {
     
     if (!db.schedules) db.schedules = [];
     db.schedules.push(newSchedule);
-    writeDb(db);
+    await writeDb(db);
     
     return NextResponse.json({ success: true, schedule: newSchedule });
   } catch (err) {
@@ -42,11 +42,11 @@ export async function DELETE(req) {
     const id = url.searchParams.get("id");
     if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
-    const db = readDb();
+    const db = await readDb();
     if (!db.schedules) return NextResponse.json({ success: true });
     
     db.schedules = db.schedules.filter(s => s.id !== id);
-    writeDb(db);
+    await writeDb(db);
     
     return NextResponse.json({ success: true });
   } catch (err) {

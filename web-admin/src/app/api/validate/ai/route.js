@@ -20,7 +20,7 @@ async function getExtractor() {
 export async function POST(request) {
   try {
     const { pointId, photos, distance, guardName } = await request.json();
-    const db = readDb();
+    const db = await readDb();
     
     const targetPoint = db.patrolPoints.find(p => p.id === pointId);
     if (!targetPoint) {
@@ -96,7 +96,7 @@ export async function POST(request) {
         };
         db.historyLogs.unshift(history);
       }
-      writeDb(db);
+      await writeDb(db);
     };
 
     if (aiScore < passThreshold) {

@@ -46,7 +46,7 @@ export default function ComprehensiveQAPwaApp() {
       // Refresh active user status to ensure they haven't been revoked by admin
       if (activeUser) {
          try {
-           const usersRes = await fetch("/api/users");
+           const usersRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/users`);
            if (usersRes.ok) {
              const allUsers = await usersRes.json();
              const me = allUsers.find(u => u.id === activeUser.id);
@@ -60,20 +60,20 @@ export default function ComprehensiveQAPwaApp() {
          }
       }
       
-      const configRes = await fetch("/api/config");
+      const configRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/config`);
       if (configRes.ok) {
          const cfg = await configRes.json();
          setSysConfig(cfg);
          localStorage.setItem("sysConfig", JSON.stringify(cfg));
       }
       
-      const logsRes = await fetch("/api/logs");
+      const logsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/logs`);
       if (logsRes.ok) {
         const l = await logsRes.json();
         if (l.aiLogs) setActivityLogs(l.aiLogs);
       }
 
-      const pointsRes = await fetch("/api/points");
+      const pointsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/points`);
       if (pointsRes.ok) {
         const pointsData = await pointsRes.json();
         if (pointsData && pointsData.length > 0) {
@@ -82,7 +82,7 @@ export default function ComprehensiveQAPwaApp() {
         }
       }
       
-      const schedulesRes = await fetch("/api/schedules");
+      const schedulesRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/schedules`);
       if (schedulesRes.ok) {
         const schedulesData = await schedulesRes.json();
         setSchedules(schedulesData);
@@ -117,7 +117,7 @@ export default function ComprehensiveQAPwaApp() {
         const remainingQueue = [];
         for (const item of queue) {
           try {
-            const res = await fetch("/api/validate/ai", {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/validate/ai`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(item.payload)
@@ -158,7 +158,7 @@ export default function ComprehensiveQAPwaApp() {
     const remainingQueue = [];
     for (const item of queue) {
       try {
-        const res = await fetch("/api/validate/ai", {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/validate/ai`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(item.payload)
@@ -204,7 +204,7 @@ export default function ComprehensiveQAPwaApp() {
     if (!loginInput.trim()) return;
     
     try {
-      const userRes = await fetch("/api/users/login", {
+      const userRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/users/login`, {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({ identifier: loginInput })

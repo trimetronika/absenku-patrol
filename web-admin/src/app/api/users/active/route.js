@@ -3,7 +3,7 @@ import { readDb } from '../../../../lib/db';
 
 export async function GET() {
   try {
-    const db = readDb();
+    const db = await readDb();
     const guards = db.guards || [];
     
     // Find the first guard on duty

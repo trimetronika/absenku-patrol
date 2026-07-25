@@ -155,7 +155,7 @@ export default function StrictPixelGuidedPatrolScanner({ activeSchedule, patrolP
       const pos = await getCurrentDevicePosition();
       setGpsData(pos);
 
-      const res = await fetch("/api/validate/gps", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/validate/gps`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pointId: point.id, gps: pos })
@@ -222,7 +222,7 @@ export default function StrictPixelGuidedPatrolScanner({ activeSchedule, patrolP
           photos: updated,
           guardName: activeUser?.name || "Unknown"
         };
-        const res = await fetch("/api/validate/ai", {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/validate/ai`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)

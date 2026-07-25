@@ -4,7 +4,7 @@ import { readDb } from '../../../../lib/db';
 export async function POST(request) {
   try {
     const { pointId, gps } = await request.json();
-    const db = readDb();
+    const db = await readDb();
     
     const targetPoint = db.patrolPoints.find(p => p.id === pointId);
     if (!targetPoint) {

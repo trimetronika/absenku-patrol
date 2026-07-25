@@ -4,7 +4,7 @@ import { readDb, writeDb } from '../../../lib/db';
 export async function POST(request) {
   try {
     const payload = await request.json();
-    const db = readDb();
+    const db = await readDb();
     
     const { pointId, qrCode, gps, photos } = payload;
     const config = db.sysConfig;
@@ -63,7 +63,7 @@ export async function POST(request) {
         reason: `Mismatched scene. Score ${aiScore}% < ${passThreshold}%`
       };
       db.aiLogs.unshift(log);
-      writeDb(db);
+      await writeDb(db);
 
       return NextResponse.json({ 
         success: false, 
@@ -93,7 +93,7 @@ export async function POST(request) {
       guard: "Officer John Doe"
     };
     db.historyLogs.unshift(history);
-    writeDb(db);
+    await writeDb(db);
 
     return NextResponse.json({
       success: true,

@@ -3,7 +3,7 @@ import { readDb, writeDb } from '../../../lib/db';
 
 export async function GET() {
   try {
-    const db = readDb();
+    const db = await readDb();
     return NextResponse.json({ success: true, users: db.guards || [] });
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const data = await request.json();
-    const db = readDb();
+    const db = await readDb();
     
     if (!db.guards) db.guards = [];
     
@@ -29,7 +29,7 @@ export async function POST(request) {
     };
     
     db.guards.push(newGuard);
-    writeDb(db);
+    await writeDb(db);
     
     return NextResponse.json({ success: true, users: db.guards });
   } catch (err) {
@@ -40,7 +40,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const data = await request.json();
-    const db = readDb();
+    const db = await readDb();
     
     if (!db.guards) db.guards = [];
     
@@ -50,7 +50,7 @@ export async function PUT(request) {
     }
     
     db.guards[index] = { ...db.guards[index], ...data };
-    writeDb(db);
+    await writeDb(db);
     
     return NextResponse.json({ success: true, users: db.guards });
   } catch (err) {

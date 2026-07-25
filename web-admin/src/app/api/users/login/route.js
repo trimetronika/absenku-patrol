@@ -8,7 +8,7 @@ export async function POST(request) {
        return NextResponse.json({ success: false, error: "Identifier is required" }, { status: 400 });
     }
     
-    const db = readDb();
+    const db = await readDb();
     const guards = db.guards || [];
     
     // Normalize input for flexible matching
