@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL 16 + PostGIS Extension
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: digital_patrol_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: digital_patrol_db
+      POSTGRES_USER: patrol_user
+      POSTGRES_PASSWORD: SecretPatrolPassword123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U patrol_user -d digital_patrol_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Redis Cache & Job Queue
+  redis:
+    image: redis:7-alpine
+    container_name: digital_patrol_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 3. Python FastAPI AI Microservice (CLIP + SSIM + ORB)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: digital_patrol_ai_service
+    restart: always
+    environment:
+      - PORT=8000
+      - LOG_LEVEL=info
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # 4. Laravel 12 API Core Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: digital_patrol_backend
+    restart: always
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=digital_patrol_db
+      - DB_USERNAME=patrol_user
+      - DB_PASSWORD=SecretPatrolPassword123!
+      - REDIS_HOST=redis
+      - AI_SERVICE_URL=http://ai-service:8000
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+
+  # 5. Guard Mobile React PWA
+  pwa-mobile:
+    build:
+      context: ./pwa-mobile
+      dockerfile: Dockerfile
+    container_name: digital_patrol_pwa
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

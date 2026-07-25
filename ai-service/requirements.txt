@@ -1,0 +1,14 @@
+fastapi>=0.109.0
+uvicorn>=0.27.0
+torch>=2.2.0
+torchvision>=0.17.0
+numpy>=1.26.0
+opencv-python-headless>=4.9.0
+scikit-image>=0.22.0
+pillow>=10.2.0
+pydantic>=2.6.0
+requests>=2.31.0
+git+https://github.com/openai/CLIP.git
+ftfy
+regex
+tqdm

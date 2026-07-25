@@ -1,0 +1,8 @@
+node_modules/
+.next/
+dist/
+pwa-mobile-backup/
+web-admin-backup/
+.env.local
+.env
+.data/
