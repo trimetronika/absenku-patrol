@@ -452,42 +452,45 @@ export default function ComprehensiveQAPwaApp() {
                     </div>
                   </>
                 ) : (
-                  <div style={styles.card}>
-                    <h3 style={{ margin: "0 0 16px 0", color: "#f8fafc" }}>New Patrol Point</h3>
-                    
-                    <div style={{ marginBottom: "12px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Point Name</label>
-                      <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Server Room A" value={newPoint.name} onChange={e => setNewPoint({...newPoint, name: e.target.value})} />
-                    </div>
-                    <div style={{ marginBottom: "12px", display: "flex", gap: "12px" }}>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Building</label>
-                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Tower 1" value={newPoint.building} onChange={e => setNewPoint({...newPoint, building: e.target.value})} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Room</label>
-                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. R-101" value={newPoint.room} onChange={e => setNewPoint({...newPoint, room: e.target.value})} />
-                      </div>
+                  <div style={{ background: "linear-gradient(145deg, #1e293b 0%, #0f172a 100%)", borderRadius: "20px", padding: "20px", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: "20px", gap: "12px" }}>
+                      <button onClick={() => setShowAddPointForm(false)} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#f8fafc", fontSize: "1.1rem", cursor: "pointer", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
+                      <h3 style={{ margin: 0, color: "#f8fafc", fontSize: "1.2rem", fontWeight: "700" }}>{newPoint.id ? "Edit Point" : "New Patrol Point"}</h3>
                     </div>
                     
-                    <div style={{ marginBottom: "12px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>GPS Location</label>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <input style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.8rem" }} type="text" readOnly value={newPoint.latitude && newPoint.longitude ? `${newPoint.latitude}, ${newPoint.longitude}` : "Not Set"} />
-                        <button style={{ background: "#38bdf8", color: "#0f172a", border: "none", borderRadius: "12px", padding: "0 16px", fontWeight: "bold", cursor: "pointer" }} onClick={handleGetGps}>📍 Get GPS</button>
-                      </div>
+                    <div style={{ marginBottom: "16px" }}>
+                      <label style={{ display: "block", fontSize: "0.85rem", color: "#94a3b8", marginBottom: "6px", fontWeight: "500" }}>Point Name</label>
+                      <input style={{ width: "100%", padding: "14px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.6)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.95rem" }} type="text" placeholder="e.g. Server Room A" value={newPoint.name} onChange={e => setNewPoint({...newPoint, name: e.target.value})} />
+                    </div>
+                    
+                    <div style={{ marginBottom: "16px" }}>
+                      <label style={{ display: "block", fontSize: "0.85rem", color: "#94a3b8", marginBottom: "6px", fontWeight: "500" }}>Building</label>
+                      <input style={{ width: "100%", padding: "14px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.6)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.95rem" }} type="text" placeholder="e.g. Tower 1" value={newPoint.building} onChange={e => setNewPoint({...newPoint, building: e.target.value})} />
                     </div>
 
                     <div style={{ marginBottom: "16px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Reference Photos (Max 3)</label>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+                      <label style={{ display: "block", fontSize: "0.85rem", color: "#94a3b8", marginBottom: "6px", fontWeight: "500" }}>Room</label>
+                      <input style={{ width: "100%", padding: "14px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.6)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.95rem" }} type="text" placeholder="e.g. R-101" value={newPoint.room} onChange={e => setNewPoint({...newPoint, room: e.target.value})} />
+                    </div>
+                    
+                    <div style={{ marginBottom: "16px" }}>
+                      <label style={{ display: "block", fontSize: "0.85rem", color: "#94a3b8", marginBottom: "6px", fontWeight: "500" }}>GPS Location</label>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <input style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.6)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.85rem" }} type="text" readOnly value={newPoint.latitude && newPoint.longitude ? `${newPoint.latitude.toFixed(5)}, ${newPoint.longitude.toFixed(5)}` : "Not Set"} />
+                        <button style={{ background: "#38bdf8", color: "#0f172a", border: "none", borderRadius: "12px", padding: "0 16px", fontWeight: "bold", cursor: "pointer", fontSize: "0.9rem" }} onClick={handleGetGps}>📍 Get</button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: "24px" }}>
+                      <label style={{ display: "block", fontSize: "0.85rem", color: "#94a3b8", marginBottom: "8px", fontWeight: "500" }}>Reference Photos (Max 3)</label>
+                      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                         {newPoint.refImages.map((img, i) => (
-                          <div key={i} style={{ width: "60px", height: "60px", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)" }}>
+                          <div key={i} style={{ width: "70px", height: "70px", borderRadius: "10px", overflow: "hidden", border: "2px solid rgba(255,255,255,0.1)" }}>
                             <img src={img} alt={`ref-${i}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           </div>
                         ))}
                         {newPoint.refImages.length < 3 && (
-                          <label style={{ width: "60px", height: "60px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.5rem", color: "#94a3b8" }}>
+                          <label style={{ width: "70px", height: "70px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: "2px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.8rem", color: "#94a3b8", transition: "0.2s" }}>
                             +
                             <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleCaptureRefPhoto} />
                           </label>
@@ -495,93 +498,15 @@ export default function ComprehensiveQAPwaApp() {
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "12px" }}>
-                      <button style={{...styles.actionBtnOutline, flex: 1}} onClick={() => setShowAddPointForm(false)}>Cancel</button>
-                      <button style={{...styles.primaryBtn, flex: 1, margin: 0}} onClick={handleSavePoint} disabled={isSavingPoint}>
-                        {isSavingPoint ? "Saving..." : "Save Point"}
-                      </button>
-                    </div>
+                    <button style={{...styles.primaryBtn, width: "100%", padding: "16px", margin: 0, fontSize: "1rem", borderRadius: "14px"}} onClick={handleSavePoint} disabled={isSavingPoint}>
+                      {isSavingPoint ? "Saving..." : "Save Point"}
+                    </button>
 
                   </div>
                 )}
               </div>
             )}
 
-            {activeTab === "POINTS" && (
-              <div style={styles.tabContent}>
-                {!showAddPointForm ? (
-                  <>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                      <h3 style={{ margin: 0, color: "#f8fafc" }}>Master Points</h3>
-                      <button style={{...styles.primaryBtn, width: "auto", padding: "8px 16px", fontSize: "0.85rem", margin: 0}} onClick={() => setShowAddPointForm(true)}>+ Add Point</button>
-                    </div>
-                    <div style={styles.scrollList}>
-                      {patrolPoints.map(p => (
-                        <div key={p.id} style={styles.card}>
-                          <div>
-                            <p style={styles.cardTitle}>{p.name}</p>
-                            <p style={styles.cardSub}>{p.building} • {p.room}</p>
-                            {p.createdBy === activeUser?.name && <span style={{...styles.badge, marginTop: "4px", display: "inline-block"}}>My Point</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div style={styles.card}>
-                    <h3 style={{ margin: "0 0 16px 0", color: "#f8fafc" }}>New Patrol Point</h3>
-                    
-                    <div style={{ marginBottom: "12px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Point Name</label>
-                      <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Server Room A" value={newPoint.name} onChange={e => setNewPoint({...newPoint, name: e.target.value})} />
-                    </div>
-                    <div style={{ marginBottom: "12px", display: "flex", gap: "12px" }}>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Building</label>
-                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Tower 1" value={newPoint.building} onChange={e => setNewPoint({...newPoint, building: e.target.value})} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Room</label>
-                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. R-101" value={newPoint.room} onChange={e => setNewPoint({...newPoint, room: e.target.value})} />
-                      </div>
-                    </div>
-                    
-                    <div style={{ marginBottom: "12px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>GPS Location</label>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <input style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.8rem" }} type="text" readOnly value={newPoint.latitude && newPoint.longitude ? `${newPoint.latitude}, ${newPoint.longitude}` : "Not Set"} />
-                        <button style={{ background: "#38bdf8", color: "#0f172a", border: "none", borderRadius: "12px", padding: "0 16px", fontWeight: "bold", cursor: "pointer" }} onClick={handleGetGps}>📍 Get GPS</button>
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: "16px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Reference Photos (Max 3)</label>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
-                        {newPoint.refImages.map((img, i) => (
-                          <div key={i} style={{ width: "60px", height: "60px", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)" }}>
-                            <img src={img} alt={`ref-${i}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          </div>
-                        ))}
-                        {newPoint.refImages.length < 3 && (
-                          <label style={{ width: "60px", height: "60px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.5rem", color: "#94a3b8" }}>
-                            +
-                            <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleCaptureRefPhoto} />
-                          </label>
-                        )}
-                      </div>
-                    </div>
-
-                    <div style={{ display: "flex", gap: "12px" }}>
-                      <button style={{...styles.actionBtnOutline, flex: 1}} onClick={() => setShowAddPointForm(false)}>Cancel</button>
-                      <button style={{...styles.primaryBtn, flex: 1, margin: 0}} onClick={handleSavePoint} disabled={isSavingPoint}>
-                        {isSavingPoint ? "Saving..." : "Save Point"}
-                      </button>
-                    </div>
-
-                  </div>
-                )}
-              </div>
-            )}
 
             {activeTab === "HISTORY" && (
               <div style={styles.tabContent}>
