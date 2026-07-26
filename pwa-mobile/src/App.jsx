@@ -10,9 +10,74 @@ export default function ComprehensiveQAPwaApp() {
   const [currentGpsStatus, setCurrentGpsStatus] = useState("");
   const [toastMsg, setToastMsg] = useState(null);
 
+  const [showAddPointForm, setShowAddPointForm] = useState(false);
+  const [newPoint, setNewPoint] = useState({ name: "", building: "", room: "", latitude: "", longitude: "", geofence_radius_meters: 15, refImages: [] });
+  const [isSavingPoint, setIsSavingPoint] = useState(false);
+
   const showToast = (msg) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleCaptureRefPhoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (newPoint.refImages.length >= 3) return showToast("Maximum 3 photos allowed");
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+       setNewPoint({...newPoint, refImages: [...newPoint.refImages, ev.target.result]});
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleGetGps = () => {
+    if (!navigator.geolocation) return showToast("GPS not supported");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setNewPoint({...newPoint, latitude: pos.coords.latitude, longitude: pos.coords.longitude}),
+      (err) => showToast("GPS Error: " + err.message),
+      { enableHighAccuracy: true }
+    );
+  };
+
+  const handleSavePoint = async () => {
+    if (!newPoint.name || !newPoint.latitude || !newPoint.longitude) return showToast("Name and GPS are required!");
+    setIsSavingPoint(true);
+    try {
+      const payload = { ...newPoint, id: newPoint.id || `pt-${Date.now()}`, createdBy: activeUser.name };
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/points`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPatrolPoints(data.points);
+        localStorage.setItem("patrolPoints", JSON.stringify(data.points));
+        setShowAddPointForm(false);
+        setNewPoint({ name: "", building: "", room: "", latitude: "", longitude: "", geofence_radius_meters: 15, refImages: [] });
+        showToast("Point Saved!");
+      } else {
+        showToast("Failed to save point");
+      }
+    } catch(e) {
+      showToast("Network error");
+    }
+    setIsSavingPoint(false);
+  };
+
+  const handleDeletePoint = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this point?")) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/points`, {
+        method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPatrolPoints(data.points);
+        localStorage.setItem("patrolPoints", JSON.stringify(data.points));
+        showToast("Point deleted");
+      }
+    } catch(e) {
+      showToast("Network error");
+    }
   };
   
   // Authentication State
@@ -360,6 +425,164 @@ export default function ComprehensiveQAPwaApp() {
               </div>
             )}
 
+            {activeTab === "POINTS" && (
+              <div style={styles.tabContent}>
+                {!showAddPointForm ? (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                      <h3 style={{ margin: 0, color: "#f8fafc" }}>Master Points</h3>
+                      <button style={{...styles.primaryBtn, width: "auto", padding: "8px 16px", fontSize: "0.85rem", margin: 0}} onClick={() => setShowAddPointForm(true)}>+ Add Point</button>
+                    </div>
+                    <div style={styles.scrollList}>
+                      {patrolPoints.map(p => (
+                        <div key={p.id} style={{...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                          <div>
+                            <p style={styles.cardTitle}>{p.name}</p>
+                            <p style={styles.cardSub}>{p.building} • {p.room}</p>
+                            {p.createdBy === activeUser?.name && <span style={{...styles.badge, marginTop: "4px", display: "inline-block"}}>My Point</span>}
+                          </div>
+                          {p.createdBy === activeUser?.name && (
+                            <div style={{ display: "flex", gap: "8px" }}>
+                              <button style={{ background: "rgba(56, 189, 248, 0.2)", color: "#38bdf8", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer" }} onClick={() => { setNewPoint(p); setShowAddPointForm(true); }}>Edit</button>
+                              <button style={{ background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer" }} onClick={() => handleDeletePoint(p.id)}>Del</button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div style={styles.card}>
+                    <h3 style={{ margin: "0 0 16px 0", color: "#f8fafc" }}>New Patrol Point</h3>
+                    
+                    <div style={{ marginBottom: "12px" }}>
+                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Point Name</label>
+                      <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Server Room A" value={newPoint.name} onChange={e => setNewPoint({...newPoint, name: e.target.value})} />
+                    </div>
+                    <div style={{ marginBottom: "12px", display: "flex", gap: "12px" }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Building</label>
+                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Tower 1" value={newPoint.building} onChange={e => setNewPoint({...newPoint, building: e.target.value})} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Room</label>
+                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. R-101" value={newPoint.room} onChange={e => setNewPoint({...newPoint, room: e.target.value})} />
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: "12px" }}>
+                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>GPS Location</label>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <input style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.8rem" }} type="text" readOnly value={newPoint.latitude && newPoint.longitude ? `${newPoint.latitude}, ${newPoint.longitude}` : "Not Set"} />
+                        <button style={{ background: "#38bdf8", color: "#0f172a", border: "none", borderRadius: "12px", padding: "0 16px", fontWeight: "bold", cursor: "pointer" }} onClick={handleGetGps}>📍 Get GPS</button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: "16px" }}>
+                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Reference Photos (Max 3)</label>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+                        {newPoint.refImages.map((img, i) => (
+                          <div key={i} style={{ width: "60px", height: "60px", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)" }}>
+                            <img src={img} alt={`ref-${i}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          </div>
+                        ))}
+                        {newPoint.refImages.length < 3 && (
+                          <label style={{ width: "60px", height: "60px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.5rem", color: "#94a3b8" }}>
+                            +
+                            <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleCaptureRefPhoto} />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <button style={{...styles.actionBtnOutline, flex: 1}} onClick={() => setShowAddPointForm(false)}>Cancel</button>
+                      <button style={{...styles.primaryBtn, flex: 1, margin: 0}} onClick={handleSavePoint} disabled={isSavingPoint}>
+                        {isSavingPoint ? "Saving..." : "Save Point"}
+                      </button>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "POINTS" && (
+              <div style={styles.tabContent}>
+                {!showAddPointForm ? (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                      <h3 style={{ margin: 0, color: "#f8fafc" }}>Master Points</h3>
+                      <button style={{...styles.primaryBtn, width: "auto", padding: "8px 16px", fontSize: "0.85rem", margin: 0}} onClick={() => setShowAddPointForm(true)}>+ Add Point</button>
+                    </div>
+                    <div style={styles.scrollList}>
+                      {patrolPoints.map(p => (
+                        <div key={p.id} style={styles.card}>
+                          <div>
+                            <p style={styles.cardTitle}>{p.name}</p>
+                            <p style={styles.cardSub}>{p.building} • {p.room}</p>
+                            {p.createdBy === activeUser?.name && <span style={{...styles.badge, marginTop: "4px", display: "inline-block"}}>My Point</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div style={styles.card}>
+                    <h3 style={{ margin: "0 0 16px 0", color: "#f8fafc" }}>New Patrol Point</h3>
+                    
+                    <div style={{ marginBottom: "12px" }}>
+                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Point Name</label>
+                      <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Server Room A" value={newPoint.name} onChange={e => setNewPoint({...newPoint, name: e.target.value})} />
+                    </div>
+                    <div style={{ marginBottom: "12px", display: "flex", gap: "12px" }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Building</label>
+                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. Tower 1" value={newPoint.building} onChange={e => setNewPoint({...newPoint, building: e.target.value})} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Room</label>
+                        <input style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }} type="text" placeholder="e.g. R-101" value={newPoint.room} onChange={e => setNewPoint({...newPoint, room: e.target.value})} />
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: "12px" }}>
+                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>GPS Location</label>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <input style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.8rem" }} type="text" readOnly value={newPoint.latitude && newPoint.longitude ? `${newPoint.latitude}, ${newPoint.longitude}` : "Not Set"} />
+                        <button style={{ background: "#38bdf8", color: "#0f172a", border: "none", borderRadius: "12px", padding: "0 16px", fontWeight: "bold", cursor: "pointer" }} onClick={handleGetGps}>📍 Get GPS</button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: "16px" }}>
+                      <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "4px" }}>Reference Photos (Max 3)</label>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+                        {newPoint.refImages.map((img, i) => (
+                          <div key={i} style={{ width: "60px", height: "60px", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)" }}>
+                            <img src={img} alt={`ref-${i}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          </div>
+                        ))}
+                        {newPoint.refImages.length < 3 && (
+                          <label style={{ width: "60px", height: "60px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.5rem", color: "#94a3b8" }}>
+                            +
+                            <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleCaptureRefPhoto} />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <button style={{...styles.actionBtnOutline, flex: 1}} onClick={() => setShowAddPointForm(false)}>Cancel</button>
+                      <button style={{...styles.primaryBtn, flex: 1, margin: 0}} onClick={handleSavePoint} disabled={isSavingPoint}>
+                        {isSavingPoint ? "Saving..." : "Save Point"}
+                      </button>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeTab === "HISTORY" && (
               <div style={styles.tabContent}>
                 {!selectedLog ? (
@@ -488,6 +711,11 @@ export default function ComprehensiveQAPwaApp() {
         <div style={activeTab === "PATROL" ? styles.navItemActive : styles.navItem} onClick={() => setActiveTab("PATROL")}>
           <div style={styles.navIcon}>🛡️</div><span>Patrol</span>
         </div>
+        {activeUser?.role === "Koordinator Lapangan" && (
+          <div style={activeTab === "POINTS" ? styles.navItemActive : styles.navItem} onClick={() => setActiveTab("POINTS")}>
+            <div style={styles.navIcon}>➕</div><span>Points</span>
+          </div>
+        )}
         <div style={activeTab === "HISTORY" ? styles.navItemActive : styles.navItem} onClick={() => setActiveTab("HISTORY")}>
           <div style={styles.navIcon}>📋</div><span>History</span>
         </div>

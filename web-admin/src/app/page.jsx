@@ -18,7 +18,7 @@ export default function PremiumAdminDashboard() {
   const [newPoint, setNewPoint] = useState({ name: "", building: "", room: "", latitude: -6.2088, longitude: 106.845, geofence_radius_meters: 15, refImages: [] });
 
   // New Guard Form State
-  const [newGuard, setNewGuard] = useState({ name: "", phone: "", route: "", status: "ON_DUTY" });
+  const [newGuard, setNewGuard] = useState({ name: "", phone: "", route: "", status: "ON_DUTY", role: "Petugas Keamanan" });
 
   // New Schedule State
   const [newSchedule, setNewSchedule] = useState({ id: null, name: "", startTime: "08:00", endTime: "12:00" });
@@ -388,6 +388,7 @@ export default function PremiumAdminDashboard() {
                              <h4 style={{ margin: "0 0 4px 0", color: "#38bdf8" }}>{pt.name}</h4>
                              <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8" }}>{pt.building} • {pt.room}</p>
                              <p style={{ margin: "4px 0 0 0", fontSize: "0.75rem", color: "#64748b" }}>GPS: {pt.lat}, {pt.lng} (Radius: {pt.geofence_radius_meters}m)</p>
+                             {pt.createdBy && <p style={{ margin: "4px 0 0 0", fontSize: "0.75rem", color: "#8b5cf6" }}>Created by: {pt.createdBy}</p>}
                              {pt.refImages && pt.refImages.length > 0 && <span style={{ fontSize: "0.7rem", background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", padding: "2px 6px", borderRadius: "4px", marginTop: "4px", display: "inline-block" }}>{pt.refImages.length} AI Ref Photos</span>}
                            </div>
                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -466,13 +467,20 @@ export default function PremiumAdminDashboard() {
                        <label style={styles.label}>Assigned Route</label>
                        <input style={styles.input} type="text" placeholder="Main Lobby Route" value={newGuard.route} onChange={e => setNewGuard({...newGuard, route: e.target.value})} />
                     </div>
+                    <div style={styles.formGroup}>
+                       <label style={styles.label}>Role (Jabatan)</label>
+                       <select style={styles.input} value={newGuard.role} onChange={e => setNewGuard({...newGuard, role: e.target.value})}>
+                          <option value="Petugas Keamanan">Petugas Keamanan</option>
+                          <option value="Koordinator Lapangan">Koordinator Lapangan</option>
+                       </select>
+                    </div>
                     <button style={styles.primaryBtn} onClick={async () => {
                       if(!newGuard.name) return showToast("Officer Name is required.");
                       const res = await fetch('/api/users', { method: 'POST', body: JSON.stringify(newGuard) });
                       if(res.ok) {
                         const data = await res.json();
                         setGuards(data.users);
-                        setNewGuard({ name: "", phone: "", route: "", status: "ON_DUTY" });
+                        setNewGuard({ name: "", phone: "", route: "", status: "ON_DUTY", role: "Petugas Keamanan" });
                         showToast("Officer added successfully");
                       }
                     }}>+ Add Officer</button>
@@ -485,6 +493,7 @@ export default function PremiumAdminDashboard() {
                        <thead>
                          <tr>
                            <th style={styles.th}>Name</th>
+                           <th style={styles.th}>Role</th>
                            <th style={styles.th}>Route</th>
                            <th style={styles.th}>Phone</th>
                            <th style={styles.th}>Status</th>
@@ -494,6 +503,7 @@ export default function PremiumAdminDashboard() {
                          {guards.map(g => (
                            <tr key={g.id} style={styles.tr}>
                              <td style={styles.td}><strong>{g.name}</strong></td>
+                             <td style={styles.td}>{g.role || "Petugas Keamanan"}</td>
                              <td style={styles.td}>{g.route}</td>
                              <td style={styles.td}>{g.phone}</td>
                              <td style={styles.td}>

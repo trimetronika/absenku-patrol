@@ -24,6 +24,7 @@ export async function POST(request) {
       phone: data.phone || "-",
       route: data.route || "General Area",
       status: data.status || "OFF_DUTY",
+      role: data.role || "Petugas Keamanan",
       battery: "100%",
       device: "Android PWA",
       antiCheat: "PASSED"
