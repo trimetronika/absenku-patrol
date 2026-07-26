@@ -457,7 +457,8 @@ export default function ComprehensiveQAPwaApp() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                       <h3 style={{ margin: 0, color: "#f8fafc" }}>Master Points</h3>
                       <button style={{...styles.primaryBtn, width: "auto", padding: "8px 16px", fontSize: "0.85rem", margin: 0}} onClick={() => setShowAddPointForm(true)}>+ Add Point</button>
-                          <div style={styles.scrollList}>
+                    </div>
+                    <div style={styles.scrollList}>
                       {patrolPoints.map(p => (
                         <div key={p.id} onClick={() => setSelectedPointDetail(p)} style={{...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                           <div>
