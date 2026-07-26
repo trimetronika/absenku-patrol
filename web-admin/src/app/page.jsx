@@ -67,21 +67,29 @@ export default function PremiumAdminDashboard() {
     const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, []);
+
   const handleAddSchedule = async (e) => {
     e.preventDefault();
     if (!newSchedule.name || !newSchedule.startTime || !newSchedule.endTime) return showToast("Fill all schedule fields");
     
+    const method = newSchedule.id ? 'PUT' : 'POST';
     const res = await fetch('/api/schedules', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method, headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newSchedule)
     });
     
     if (res.ok) {
       const { schedule } = await res.json();
-      setSchedules([...schedules, schedule]);
-      setNewSchedule({ name: "", startTime: "08:00", endTime: "12:00" });
+      if (newSchedule.id) {
+        setSchedules(schedules.map(s => s.id === schedule.id ? schedule : s));
+        showToast("Schedule updated successfully");
+      } else {
+        setSchedules([...schedules, schedule]);
+        showToast("Schedule added successfully");
+      }
+      setNewSchedule({ id: null, name: "", startTime: "08:00", endTime: "12:00" });
     } else {
-      showToast("Failed to add schedule");
+      showToast("Failed to save schedule");
     }
   };
 
@@ -184,7 +192,12 @@ export default function PremiumAdminDashboard() {
                          <input type="time" value={newSchedule.endTime} onChange={e => setNewSchedule({...newSchedule, endTime: e.target.value})} style={styles.input} required />
                        </div>
                      </div>
-                     <button type="submit" style={styles.primaryBtn}>Save Schedule</button>
+                     <div style={{ display: "flex", gap: "12px" }}>
+                       <button type="submit" style={styles.primaryBtn}>{newSchedule.id ? "💾 Update Schedule" : "+ Save Schedule"}</button>
+                       {newSchedule.id && (
+                         <button type="button" style={{...styles.actionBtnOutline, width: "auto", border: "1px solid rgba(239, 68, 68, 0.5)", color: "#ef4444"}} onClick={() => setNewSchedule({ id: null, name: "", startTime: "08:00", endTime: "12:00" })}>Cancel</button>
+                       )}
+                     </div>
                    </form>
                  </div>
                  
@@ -199,7 +212,10 @@ export default function PremiumAdminDashboard() {
                              {sched.startTime} - {sched.endTime}
                            </p>
                          </div>
-                         <button onClick={() => handleDeleteSchedule(sched.id)} style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "none", padding: "8px 12px", borderRadius: "8px", cursor: "pointer" }}>Delete</button>
+                         <div style={{ display: "flex", gap: "8px" }}>
+                           <button onClick={() => { setNewSchedule(sched); window.scrollTo({top: 0, behavior: 'smooth'}); }} style={{ background: "rgba(234, 179, 8, 0.1)", color: "#eab308", border: "none", padding: "8px 12px", borderRadius: "8px", cursor: "pointer" }}>Edit</button>
+                           <button onClick={() => handleDeleteSchedule(sched.id)} style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "none", padding: "8px 12px", borderRadius: "8px", cursor: "pointer" }}>Delete</button>
+                         </div>
                        </div>
                      ))}
                      {schedules.length === 0 && <p style={{color: "#64748b"}}>No schedules configured.</p>}
@@ -225,6 +241,7 @@ export default function PremiumAdminDashboard() {
                        <th style={styles.th}>Photos</th>
                        <th style={styles.th}>Justification</th>
                        <th style={styles.th}>Status</th>
+                       <th style={styles.th}>Actions</th>
                      </tr>
                    </thead>
                    <tbody>
@@ -246,6 +263,19 @@ export default function PremiumAdminDashboard() {
                          <td style={styles.td}><small style={{color:"#94a3b8"}}>{log.reason}</small></td>
                          <td style={styles.td}>
                            <span style={log.status === "VERIFIED" ? styles.badgePass : styles.badgeFail}>{log.status}</span>
+                         </td>
+                         <td style={styles.td}>
+                           <button onClick={async () => {
+                             if(confirm('Delete AI log? This will remove associated images.')) {
+                               const res = await fetch(`/api/logs?id=${log.id}&type=ai`, { method: 'DELETE' });
+                               if(res.ok) {
+                                 setAiLogs(aiLogs.filter(l => l.id !== log.id));
+                                 showToast("Log deleted");
+                               }
+                             }
+                           }} style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                             🗑️
+                           </button>
                          </td>
                        </tr>
                      ))}
@@ -428,6 +458,7 @@ export default function PremiumAdminDashboard() {
                        <th style={styles.th}>Officer</th>
                        <th style={styles.th}>Target Point</th>
                        <th style={styles.th}>Status</th>
+                       <th style={styles.th}>Actions</th>
                      </tr>
                    </thead>
                    <tbody>
@@ -438,6 +469,19 @@ export default function PremiumAdminDashboard() {
                          <td style={styles.td}>{log.pointName}</td>
                          <td style={styles.td}>
                            <span style={styles.badgePass}>{log.status}</span>
+                         </td>
+                         <td style={styles.td}>
+                           <button onClick={async () => {
+                             if(confirm('Delete audit log?')) {
+                               const res = await fetch(`/api/logs?id=${log.id}&type=audit`, { method: 'DELETE' });
+                               if(res.ok) {
+                                 setHistoryLogs(historyLogs.filter(l => l.id !== log.id));
+                                 showToast("Audit log deleted");
+                               }
+                             }
+                           }} style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                             🗑️
+                           </button>
                          </td>
                        </tr>
                      ))}
@@ -476,14 +520,20 @@ export default function PremiumAdminDashboard() {
                     </div>
                     <button style={styles.primaryBtn} onClick={async () => {
                       if(!newGuard.name) return showToast("Officer Name is required.");
-                      const res = await fetch('/api/users', { method: 'POST', body: JSON.stringify(newGuard) });
+                      const method = newGuard.id ? 'PUT' : 'POST';
+                      const res = await fetch('/api/users', { method, body: JSON.stringify(newGuard) });
                       if(res.ok) {
                         const data = await res.json();
                         setGuards(data.users);
                         setNewGuard({ name: "", phone: "", route: "", status: "ON_DUTY", role: "Petugas Keamanan" });
-                        showToast("Officer added successfully");
+                        showToast(newGuard.id ? "Officer updated" : "Officer added");
                       }
-                    }}>+ Add Officer</button>
+                    }}>{newGuard.id ? "💾 Update Officer" : "+ Add Officer"}</button>
+                    {newGuard.id && (
+                       <button style={{...styles.actionBtnOutline, width: "100%", marginTop: "8px", border: "1px solid rgba(239, 68, 68, 0.5)", color: "#ef4444"}} onClick={() => setNewGuard({ name: "", phone: "", route: "", status: "ON_DUTY", role: "Petugas Keamanan" })}>
+                         Cancel Edit
+                       </button>
+                    )}
                   </div>
 
                   {/* List */}
@@ -497,6 +547,7 @@ export default function PremiumAdminDashboard() {
                            <th style={styles.th}>Route</th>
                            <th style={styles.th}>Phone</th>
                            <th style={styles.th}>Status</th>
+                           <th style={styles.th}>Actions</th>
                          </tr>
                        </thead>
                        <tbody>
@@ -524,6 +575,21 @@ export default function PremiumAdminDashboard() {
                                  <option value="OFF_DUTY" style={{ color: "#000" }}>OFF DUTY</option>
                                  <option value="SUSPENDED" style={{ color: "#000" }}>SUSPENDED</option>
                                </select>
+                             </td>
+                             <td style={styles.td}>
+                               <div style={{ display: "flex", gap: "8px" }}>
+                                 <button style={{ background: "rgba(234, 179, 8, 0.2)", color: "#eab308", border: "none", padding: "4px 8px", borderRadius: "8px", cursor: "pointer" }} onClick={() => { setNewGuard(g); window.scrollTo({top: 0, behavior: 'smooth'}); }}>✏️</button>
+                                 <button style={{ background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", border: "none", padding: "4px 8px", borderRadius: "8px", cursor: "pointer" }} onClick={async () => {
+                                   if(confirm('Delete officer?')) {
+                                     const res = await fetch(`/api/users?id=${g.id}`, { method: 'DELETE' });
+                                     if(res.ok) {
+                                       const data = await res.json();
+                                       setGuards(data.users);
+                                       showToast('Officer deleted');
+                                     }
+                                   }
+                                 }}>🗑️</button>
+                               </div>
                              </td>
                            </tr>
                          ))}

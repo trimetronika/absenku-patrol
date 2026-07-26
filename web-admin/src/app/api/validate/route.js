@@ -6,7 +6,7 @@ export async function POST(request) {
     const payload = await request.json();
     const db = await readDb();
     
-    const { pointId, qrCode, gps, photos } = payload;
+    const { pointId, qrCode, gps, photos, guardName } = payload;
     const config = db.sysConfig;
     const targetPoint = db.patrolPoints.find(p => p.id === pointId);
 
@@ -56,7 +56,7 @@ export async function POST(request) {
         id: `ailog-${Date.now()}`,
         timestamp: new Date().toISOString(),
         pointName: targetPoint.name,
-        guardName: "Officer John Doe",
+        guardName: guardName || "Unknown Officer",
         status: "REJECTED",
         score: aiScore,
         photos: photos,
@@ -77,7 +77,7 @@ export async function POST(request) {
       id: `ailog-${Date.now()}`,
       timestamp: new Date().toISOString(),
       pointName: targetPoint.name,
-      guardName: "Officer John Doe",
+      guardName: guardName || "Unknown Officer",
       status: "VERIFIED",
       score: aiScore,
       photos: photos,

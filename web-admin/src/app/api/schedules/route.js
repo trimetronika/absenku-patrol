@@ -37,6 +37,28 @@ export async function POST(req) {
   }
 }
 
+export async function PUT(req) {
+  try {
+    const body = await req.json();
+    if (!body.id || !body.name || !body.startTime || !body.endTime) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const db = await readDb();
+    if (!db.schedules) db.schedules = [];
+    
+    const index = db.schedules.findIndex(s => s.id === body.id);
+    if (index === -1) return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
+    
+    db.schedules[index] = { ...db.schedules[index], ...body };
+    await writeDb(db);
+    
+    return NextResponse.json({ success: true, schedule: db.schedules[index] });
+  } catch (err) {
+    return NextResponse.json({ error: "Failed to update schedule" }, { status: 500 });
+  }
+}
+
 export async function DELETE(req) {
   try {
     const url = new URL(req.url);

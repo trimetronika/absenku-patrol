@@ -59,3 +59,18 @@ export async function PUT(request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    const db = await readDb();
+    if (db.guards) {
+      db.guards = db.guards.filter(g => g.id !== id);
+      await writeDb(db);
+    }
+    return NextResponse.json({ success: true, users: db.guards });
+  } catch (err) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
