@@ -23,9 +23,33 @@ export default function ComprehensiveQAPwaApp() {
     const file = e.target.files[0];
     if (!file) return;
     if (newPoint.refImages.length >= 3) return showToast("Maximum 3 photos allowed");
+    
     const reader = new FileReader();
     reader.onload = (ev) => {
-       setNewPoint({...newPoint, refImages: [...newPoint.refImages, ev.target.result]});
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 800;
+        
+        if (width > height && width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
+        } else if (height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedData = canvas.toDataURL("image/jpeg", 0.7);
+        setNewPoint(prev => ({...prev, refImages: [...prev.refImages, compressedData]}));
+      };
+      img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   };
@@ -479,6 +503,11 @@ export default function ComprehensiveQAPwaApp() {
                         <input style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(15, 23, 42, 0.6)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none", fontSize: "0.85rem" }} type="text" readOnly value={newPoint.latitude && newPoint.longitude ? `${newPoint.latitude.toFixed(5)}, ${newPoint.longitude.toFixed(5)}` : "Not Set"} />
                         <button style={{ background: "#38bdf8", color: "#0f172a", border: "none", borderRadius: "12px", padding: "0 16px", fontWeight: "bold", cursor: "pointer", fontSize: "0.9rem" }} onClick={handleGetGps}>📍 Get</button>
                       </div>
+                      {newPoint.latitude && newPoint.longitude && (
+                        <div style={{ marginTop: "12px", borderRadius: "12px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(15, 23, 42, 0.6)" }}>
+                          <iframe width="100%" height="200" frameBorder="0" style={{ border: 0 }} src={`https://maps.google.com/maps?q=${newPoint.latitude},${newPoint.longitude}&hl=en&z=15&output=embed`} allowFullScreen></iframe>
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ marginBottom: "24px" }}>
