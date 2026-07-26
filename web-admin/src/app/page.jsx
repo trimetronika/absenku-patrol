@@ -637,10 +637,33 @@ export default function PremiumAdminDashboard() {
                   <div style={{ pointerEvents: "none", opacity: 0.8, marginBottom: "16px", borderRadius: "12px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
                      <GoogleMapPicker 
                          apiKey={sysConfig.googleMapsApiKey} 
-                         initialLat={activePointView.lat} 
-                         initialLng={activePointView.lng} 
+                         initialLat={activePointView.lat || activePointView.latitude} 
+                         initialLng={activePointView.lng || activePointView.longitude} 
                          radius={activePointView.geofence_radius_meters}
                      />
+                  </div>
+                  
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)", display: "flex", gap: "16px", alignItems: "center", marginBottom: "16px" }}>
+                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${activePointView.id}`} alt="QR Code" style={{ width: "80px", height: "80px", borderRadius: "8px", background: "#fff", padding: "4px" }} />
+                     <div>
+                        <p style={{ margin: "0 0 8px 0", color: "#e2e8f0", fontSize: "0.95rem", fontWeight: "600" }}>QR Code Identifier</p>
+                        <button onClick={async () => {
+                            const url = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${activePointView.id}`;
+                            try {
+                                const response = await fetch(url);
+                                const blob = await response.blob();
+                                const objectUrl = URL.createObjectURL(blob);
+                                const link = document.createElement("a");
+                                link.href = objectUrl;
+                                link.download = `QR_${activePointView.name.replace(/\s+/g, '_')}.png`;
+                                link.click();
+                            } catch(err) {
+                                window.open(url, '_blank');
+                            }
+                        }} style={{ background: "rgba(168, 85, 247, 0.2)", color: "#c084fc", border: "1px solid rgba(168, 85, 247, 0.5)", padding: "8px 16px", borderRadius: "8px", cursor: "pointer", fontSize: "0.85rem", fontWeight: "bold" }}>
+                          ⬇ Download QR
+                        </button>
+                     </div>
                   </div>
                   
                   {activePointView.refImages && activePointView.refImages.length > 0 ? (

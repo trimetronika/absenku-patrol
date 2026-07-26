@@ -11,6 +11,7 @@ export default function ComprehensiveQAPwaApp() {
   const [toastMsg, setToastMsg] = useState(null);
 
   const [showAddPointForm, setShowAddPointForm] = useState(false);
+  const [selectedPointDetail, setSelectedPointDetail] = useState(null);
   const [newPoint, setNewPoint] = useState({ name: "", building: "", room: "", latitude: "", longitude: "", geofence_radius_meters: 15, refImages: [] });
   const [isSavingPoint, setIsSavingPoint] = useState(false);
 
@@ -456,10 +457,9 @@ export default function ComprehensiveQAPwaApp() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                       <h3 style={{ margin: 0, color: "#f8fafc" }}>Master Points</h3>
                       <button style={{...styles.primaryBtn, width: "auto", padding: "8px 16px", fontSize: "0.85rem", margin: 0}} onClick={() => setShowAddPointForm(true)}>+ Add Point</button>
-                    </div>
-                    <div style={styles.scrollList}>
+                          <div style={styles.scrollList}>
                       {patrolPoints.map(p => (
-                        <div key={p.id} style={{...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                        <div key={p.id} onClick={() => setSelectedPointDetail(p)} style={{...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                           <div>
                             <p style={styles.cardTitle}>{p.name}</p>
                             <p style={styles.cardSub}>{p.building} • {p.room}</p>
@@ -467,8 +467,8 @@ export default function ComprehensiveQAPwaApp() {
                           </div>
                           {p.createdBy === activeUser?.name && (
                             <div style={{ display: "flex", gap: "8px" }}>
-                              <button style={{ background: "rgba(56, 189, 248, 0.2)", color: "#38bdf8", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer" }} onClick={() => { setNewPoint(p); setShowAddPointForm(true); }}>Edit</button>
-                              <button style={{ background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer" }} onClick={() => handleDeletePoint(p.id)}>Del</button>
+                              <button style={{ background: "rgba(56, 189, 248, 0.2)", color: "#38bdf8", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer", position: "relative", zIndex: 2 }} onClick={(e) => { e.stopPropagation(); setNewPoint(p); setShowAddPointForm(true); }}>Edit</button>
+                              <button style={{ background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", border: "none", padding: "8px", borderRadius: "8px", cursor: "pointer", position: "relative", zIndex: 2 }} onClick={(e) => { e.stopPropagation(); handleDeletePoint(p.id); }}>Del</button>
                             </div>
                           )}
                         </div>
@@ -658,6 +658,58 @@ export default function ComprehensiveQAPwaApp() {
               </div>
             )}
           </>
+        )}
+        
+        {selectedPointDetail && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(2, 6, 23, 0.95)", zIndex: 100, display: "flex", flexDirection: "column", padding: "20px", animation: "fadeIn 0.3s ease-out", overflowY: "auto" }}>
+             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <button onClick={() => setSelectedPointDetail(null)} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#f8fafc", width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer", fontSize: "1.2rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                <h3 style={{ margin: 0, color: "#fff", fontSize: "1.2rem" }}>Point Details</h3>
+                <div style={{ width: "40px" }}></div>
+             </div>
+             
+             <div style={{ background: "linear-gradient(145deg, #1e293b, #0f172a)", borderRadius: "20px", padding: "20px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <h2 style={{ margin: "0 0 4px 0", color: "#38bdf8", fontSize: "1.4rem" }}>{selectedPointDetail.name}</h2>
+                <p style={{ margin: "0 0 16px 0", color: "#94a3b8" }}>{selectedPointDetail.building} • {selectedPointDetail.room}</p>
+                
+                <div style={{ marginBottom: "16px", borderRadius: "12px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(15, 23, 42, 0.6)" }}>
+                  <iframe width="100%" height="150" frameBorder="0" style={{ border: 0 }} src={`https://maps.google.com/maps?q=${selectedPointDetail.latitude || selectedPointDetail.lat},${selectedPointDetail.longitude || selectedPointDetail.lng}&hl=en&z=15&output=embed`} allowFullScreen></iframe>
+                </div>
+                
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: "16px", borderRadius: "12px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
+                   <p style={{ margin: 0, color: "#e2e8f0", fontSize: "0.9rem", fontWeight: "600" }}>Location QR Code</p>
+                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedPointDetail.id}`} alt="QR Code" style={{ width: "150px", height: "150px", borderRadius: "12px", background: "#fff", padding: "8px" }} />
+                   
+                   <button onClick={async () => {
+                        const url = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${selectedPointDetail.id}`;
+                        try {
+                            const response = await fetch(url);
+                            const blob = await response.blob();
+                            const objectUrl = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = objectUrl;
+                            link.download = `QR_${selectedPointDetail.name.replace(/\s+/g, '_')}.png`;
+                            link.click();
+                        } catch(err) {
+                            window.open(url, '_blank');
+                        }
+                    }} style={{ width: "100%", background: "rgba(168, 85, 247, 0.2)", color: "#c084fc", border: "1px solid rgba(168, 85, 247, 0.5)", padding: "12px", borderRadius: "12px", cursor: "pointer", fontSize: "0.95rem", fontWeight: "bold" }}>
+                     ⬇ Download QR Code
+                   </button>
+                </div>
+                
+                {selectedPointDetail.refImages && selectedPointDetail.refImages.length > 0 && (
+                   <div>
+                      <p style={{ margin: "0 0 8px 0", fontSize: "0.85rem", color: "#e2e8f0" }}>Reference Photos ({selectedPointDetail.refImages.length}):</p>
+                      <div style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
+                         {selectedPointDetail.refImages.map((img, i) => (
+                            <img key={i} src={img} alt="Ref" style={{ height: "100px", objectFit: "cover", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0 }} />
+                         ))}
+                      </div>
+                   </div>
+                )}
+             </div>
+          </div>
         )}
       </main>
 
